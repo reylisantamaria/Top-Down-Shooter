@@ -8,13 +8,12 @@ A simple top-down space shooter built with C++ and SDL3.
 Top-Down-Shooter/
 ├── include/                 # Header files
 │   ├── engine/             # ECS engine headers
-│   │   ├── Types.h         # Core ECS types (Entity, Component, Signature)
-│   │   ├── EntityManager.h # Entity management system
-│   │   ├── ComponentStorage.h # Component storage system
-│   │   ├── ComponentManager.h # Component management
-│   │   ├── System.h        # System base class
-│   │   ├── SystemManager.h # System management
-│   │   └── Registry.h      # ECS registry/manager
+│   │   ├── Types.h            # Core ECS types
+│   │   ├── EntityManager.h    # Manages entity lifecycles
+│   │   ├── ComponentManager.h # Manages all component arrays
+│   │   ├── System.h           # Base class for systems
+│   │   ├── SystemManager.h    # Manages systems
+│   │   └── Coordinator.h      # Facade (was Registry.h)
 │   │
 │   └── game/               # Game-specific headers
 │       ├── components.h    # All components in one header
@@ -24,12 +23,11 @@ Top-Down-Shooter/
 │
 ├── src/                    # Source files
 │   ├── engine/             # ECS engine implementations
-│   │   ├── EntityManager.cpp # Entity management implementation
-│   │   ├── ComponentStorage.cpp # Component storage implementation
+│   │   ├── EntityManager.cpp    # Entity management implementation
 │   │   ├── ComponentManager.cpp # Component management implementation
-│   │   ├── System.cpp      # System base class implementation
-│   │   ├── SystemManager.cpp # System management implementation
-│   │   └── Registry.cpp    # ECS registry implementation
+│   │   ├── System.cpp           # System base class implementation
+│   │   ├── SystemManager.cpp    # System management implementation
+│   │   └── Coordinator.cpp      # ECS coordinator implementation
 │   │
 │   ├── game/               # Game-specific implementations
 │   │   ├── components.cpp  # Component implementations (if needed)

@@ -1,2 +1,2 @@
-// Registry implementation
+// Coordinator implementation
 

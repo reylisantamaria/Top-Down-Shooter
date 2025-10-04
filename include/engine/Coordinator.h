@@ -1,4 +1,4 @@
 #pragma once
 
-// Registry class - implement main ECS registry here
+// Coordinator class - implement main ECS facade here
 
