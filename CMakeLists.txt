@@ -25,5 +25,10 @@ target_link_libraries(Top-Down-Shooter PRIVATE
     SDL3::SDL3
     ${SDL3_IMAGE_LIBRARIES}
 )
-target_include_directories(Top-Down-Shooter PRIVATE ${SDL3_IMAGE_INCLUDE_DIRS})
+
+# Add include directories
+target_include_directories(Top-Down-Shooter PRIVATE 
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${SDL3_IMAGE_INCLUDE_DIRS}
+)
 target_link_directories(Top-Down-Shooter PRIVATE ${SDL3_IMAGE_LIBRARY_DIRS})
