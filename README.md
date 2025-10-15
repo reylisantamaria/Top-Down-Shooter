@@ -35,7 +35,7 @@ Top-Down-Shooter/
 │   │   ├── entities/       # Entity setup code (future)
 │   │   └── scenes/         # Scene logic (future)
 │   │
-│   ├── Entities/           # Legacy code (to be migrated)
+│   ├── legacy/           # Legacy code (to be migrated)
 │   │   ├── GameObject.h
 │   │   ├── Player.h
 │   │   ├── Laser.h
