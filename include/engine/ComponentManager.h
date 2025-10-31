@@ -1,62 +1,29 @@
 #pragma once
 
+#include <memory>
+#include <unordered_map>
 #include <typeindex>
+#include <cassert>
 
+#include "ComponentArray.h"
 #include "Types.h"
-#include "EntityManager.h"
 
 // ComponentManager: Stores all components for all entities in the game
 // What it does:
-// 1. Add a component to an entity
-// 2. Access a component from a specific entity
-// 3. Remove a component from an entity
-// 4. Clean up components when entities are destroyed
+// - Registers component types (Transform, Velocity, Health, etc.)
+// - Adds/removes components to/from entities
+// - Retrieves components from entities
+// - Cleans up components when entities are destroyed
 //
 // How it works:
-// - Each component type (Transform, Velocity, etc.) gets its own packed array
+// - Each component type gets its own packed array for cache performance
 // - Uses templates so you can store any component type
-// - Keeps components tightly packed in memory for better performance
+// - Assigns each type a unique ID for signature matching
 
 namespace ECS
 {
   // =======================================================
-
-  // Interface for component arrays (so we can store different types together)
-  // Why we need this: ComponentArray<Transform> and ComponentArray<Velocity> are different types,
-  // but we want to store them in the same container. This interface lets us do that.
-  class IComponentArray
-  {
-  public:
-    virtual void EntityDestroyed(Entity e) = 0;
-  };
-
-  // ComponentArray: Stores all components of a single type (e.g. all Transforms)
-  // Why packed arrays? Cache performance. Keeping data tightly packed means faster iteration.
-  template <typename T>
-  class ComponentArray : public IComponentArray
-  {
-  public:
-    void AddElement(Entity e, T component); // add a component to an entity
-    void RemoveElement(Entity e);           // remove a component from an entity (uses swap-and-pop)
-    T &GetData(Entity e);                   // get a component from an entity
-    void EntityDestroyed(Entity e) override;
-
-  private:
-    // The actual component data, stored contiguously
-    std::array<T, MAX_COMPONENTS> _componentArray{};
-
-    // Two-way mapping between entities and array indices
-    // Why both directions?
-    // - entityToIndex: quickly find where an entity's component is stored
-    // - indexToEntity: when we remove a component, we need to know which entity we moved
-    std::unordered_map<Entity, size_t> _entityToIndex{};
-    std::unordered_map<size_t, Entity> _indexToEntity{};
-
-    // Total count of active components
-    // Why track this? The array is fixed size, but only the first _size elements are valid
-    size_t _size{};
-  };
-
+  // ComponentManager: controls all component storage
   // =======================================================
   class ComponentManager
   {
@@ -98,4 +65,61 @@ namespace ECS
     template <typename T>
     std::shared_ptr<ComponentArray<T>> GetComponentArray();
   };
+
+  // =======================================================
+  // Template implementations
+  // =======================================================
+
+  template <typename T>
+  void ComponentManager::RegisterComponent()
+  {
+    std::type_index typeIndex = typeid(T);
+    assert(_componentTypes.find(typeIndex) == _componentTypes.end() && "Registering component type more than once.");
+
+    // give this component type a unique ID number
+    _componentTypes.insert({typeIndex, _nextComponentType});
+
+    // create a new array to store all components of this type
+    _componentStorage.insert({typeIndex, std::make_shared<ComponentArray<T>>()});
+
+    // increment so the next component type gets a different ID
+    ++_nextComponentType;
+  }
+
+  template <typename T>
+  ComponentType ComponentManager::GetComponentType()
+  {
+    std::type_index typeIndex = typeid(T);
+    assert(_componentTypes.find(typeIndex) != _componentTypes.end() && "Component not registered before use.");
+    return _componentTypes[typeIndex];
+  }
+
+  template <typename T>
+  void ComponentManager::AddComponent(Entity e, T component)
+  {
+    GetComponentArray<T>()->AddElement(e, component);
+  }
+
+  template <typename T>
+  void ComponentManager::RemoveComponent(Entity e)
+  {
+    GetComponentArray<T>()->RemoveElement(e);
+  }
+
+  template <typename T>
+  T &ComponentManager::GetComponent(Entity e)
+  {
+    return GetComponentArray<T>()->GetData(e);
+  }
+
+  template <typename T>
+  std::shared_ptr<ComponentArray<T>> ComponentManager::GetComponentArray()
+  {
+    std::type_index typeIndex = typeid(T);
+    assert(_componentStorage.find(typeIndex) != _componentStorage.end() && "Component not registered before use.");
+
+    // cast the generic IComponentArray back to the specific ComponentArray<T> type
+    // this is safe because we know we stored a ComponentArray<T> when we registered it
+    return std::static_pointer_cast<ComponentArray<T>>(_componentStorage[typeIndex]);
+  }
 }

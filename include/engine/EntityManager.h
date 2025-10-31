@@ -1,11 +1,9 @@
 #pragma once
 
-#include "Types.h"
-#include <queue>
 #include <array>
-// EntityManager class - implement ECS entity management here
+#include <queue>
 
-// Constructor: initialize the queue with all possible entity IDs
+#include "Types.h"
 
 // 1. we must be able to create and entity
 //    -> pick unused ID -> mark it as "in use" -> give it back to the caller 
