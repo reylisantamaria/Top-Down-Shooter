@@ -8,23 +8,24 @@
 #include "ComponentArray.h"
 #include "Types.h"
 
-// ComponentManager: Stores all components for all entities in the game
-// What it does:
-// - Registers component types (Transform, Velocity, Health, etc.)
-// - Adds/removes components to/from entities
-// - Retrieves components from entities
-// - Cleans up components when entities are destroyed
-//
-// How it works:
-// - Each component type gets its own packed array for cache performance
-// - Uses templates so you can store any component type
-// - Assigns each type a unique ID for signature matching
+// =======================================================
+// ComponentManager
+// =======================================================
+
+/* What it does:
+ * - Registers component types (Transform, Velocity, Health, etc.)
+ * - Adds/removes components to/from entities
+ * - Retrieves components from entities
+ * - Cleans up components when entities are destroyed
+ *
+ * How it works:
+ * - Each component type gets its own packed array for cache performance
+ * - Uses templates so you can store any component type
+ * - Assigns each type a unique ID for signature matching
+ */
 
 namespace ECS
 {
-  // =======================================================
-  // ComponentManager: controls all component storage
-  // =======================================================
   class ComponentManager
   {
   public:
@@ -46,28 +47,24 @@ namespace ECS
     void EntityDestroyed(Entity e);
 
   private:
-    // Map: component type name → unique ID (0, 1, 2, ...)
-    // Why: We need a number to represent each component type for signatures (bitsets)
-    // Example: Transform=0, Velocity=1, Health=2
-    std::unordered_map<std::type_index, ComponentType> _componentTypes{};
+    std::unordered_map<std::type_index, ComponentType> _componentTypes{}; // Map: component type name → unique ID (0, 1, 2, ...)
+                                                                          // Why: We need a number to represent each component type for signatures (bitsets)
+                                                                          // Example: Transform=0, Velocity=1, Health=2
 
-    // Map: component type → its storage array
-    // Why: Each component type needs its own packed array
-    // The trick: ComponentArray<Transform> and ComponentArray<Velocity> are different types,
-    //            but they both inherit from IComponentArray, so we can store them together
-    // Example: Transform → ComponentArray<Transform>, Velocity → ComponentArray<Velocity>
-    std::unordered_map<std::type_index, std::shared_ptr<IComponentArray>> _componentStorage{};
+    std::unordered_map<std::type_index, std::shared_ptr<IComponentArray>> _componentStorage{}; // Map: component type → its storage array
+                                                                                               // Why: Each component type needs its own packed array
+                                                                                               // The trick: ComponentArray<Transform> and ComponentArray<Velocity> are different types,
+                                                                                               // but they both inherit from IComponentArray, so we can store them together
 
-    // Counter: The next component type ID to assign
-    // Starts at 0, increments each time we register a new component type
-    ComponentType _nextComponentType{};
+    ComponentType _nextComponentType{}; // Counter: The next component type ID to assign
+                                        // Starts at 0, increments each time we register a new component type
 
     template <typename T>
     std::shared_ptr<ComponentArray<T>> GetComponentArray();
   };
 
   // =======================================================
-  // Template implementations
+  // ComponentManager (template implementations)
   // =======================================================
 
   template <typename T>
@@ -76,14 +73,10 @@ namespace ECS
     std::type_index typeIndex = typeid(T);
     assert(_componentTypes.find(typeIndex) == _componentTypes.end() && "Registering component type more than once.");
 
-    // give this component type a unique ID number
-    _componentTypes.insert({typeIndex, _nextComponentType});
+    _componentTypes.insert({typeIndex, _nextComponentType});                      // Give this component type a unique ID number
+    _componentStorage.insert({typeIndex, std::make_shared<ComponentArray<T>>()}); // Create a new array to store all components of this type
 
-    // create a new array to store all components of this type
-    _componentStorage.insert({typeIndex, std::make_shared<ComponentArray<T>>()});
-
-    // increment so the next component type gets a different ID
-    ++_nextComponentType;
+    ++_nextComponentType; // Increment so the next component type gets a different ID
   }
 
   template <typename T>
@@ -118,8 +111,7 @@ namespace ECS
     std::type_index typeIndex = typeid(T);
     assert(_componentStorage.find(typeIndex) != _componentStorage.end() && "Component not registered before use.");
 
-    // cast the generic IComponentArray back to the specific ComponentArray<T> type
-    // this is safe because we know we stored a ComponentArray<T> when we registered it
-    return std::static_pointer_cast<ComponentArray<T>>(_componentStorage[typeIndex]);
+    return std::static_pointer_cast<ComponentArray<T>>(_componentStorage[typeIndex]); // Cast the generic IComponentArray back to the specific ComponentArray<T> type
+                                                                                      // This is safe because we know we stored a ComponentArray<T> when we registered it
   }
 }

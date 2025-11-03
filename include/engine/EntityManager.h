@@ -5,14 +5,21 @@
 
 #include "Types.h"
 
-// 1. we must be able to create and entity
-//    -> pick unused ID -> mark it as "in use" -> give it back to the caller 
+// =======================================================
+// EntityManager: Handles entity lifecycle and signatures
+// =======================================================
 
-// 2. we can destroy an entity but can reuse the ID for later
-
-// 3. set signatures to entities
-
-// 4. get signatures from entities
+/* What it does:
+ * - Creates entities by assigning unique IDs from a reusable pool
+ * - Destroys entities and recycles their IDs for future use
+ * - Tracks which components each entity has via signatures
+ * - Provides signature lookup for systems to query entity composition
+ *
+ * What it does NOT do:
+ * - Store actual component data (ComponentManager does this)
+ * - Decide which systems an entity belongs to (SystemManager does this)
+ * - Implement game logic (Systems do this)
+ */
 
 namespace ECS
 {
@@ -21,18 +28,17 @@ namespace ECS
   public:
     EntityManager();
     Entity CreateEntity();
-    void DestroyEntity(Entity e);
-    void SetSignature(Entity e, Signature s);
-    const Signature& GetSignature(Entity e) const;
+    void DestroyEntity(Entity entity);
+    void SetSignature(Entity entity, Signature signature);
+    const Signature &GetSignature(Entity entity) const;
 
   private:
-    // available entity ids
-    std::queue<Entity> _EntityIDs{};
+    std::queue<Entity> _entityIDs{}; // Available entity IDs
+                                     // When we destroy an entity, its ID goes back in the queue for reuse
 
-    // signatures for each entity
-    std::array<Signature, MAX_ENTITIES> _Signatures{};
+    std::array<Signature, MAX_ENTITIES> _signatures{}; // Signatures for each entity
+                                                       // Index by entity ID to get its signature
 
-    // Total living entites - keep track
-    size_t _LivingEntityCount{};
+    size_t _livingEntityCount{}; // Total living entities - keep track for debugging and validation
   };
 }

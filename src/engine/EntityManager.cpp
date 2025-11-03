@@ -1,68 +1,69 @@
 #include "engine/EntityManager.h"
 
 #include <cassert>
-
-using namespace ECS;
-
+  
 // =======================================================
-EntityManager::EntityManager()
+// EntityManager (non-template function implementations)
+// =======================================================
+
+ECS::EntityManager::EntityManager()
 {
   // initialize the queue
-  for (Entity e = 0; e < MAX_ENTITIES; ++e)
+  for (Entity entity = 0; entity < MAX_ENTITIES; ++entity)
   {
-    _EntityIDs.push(e);
+    _entityIDs.push(entity);
   }
 }
 
 // =======================================================
-Entity EntityManager::CreateEntity()
+ECS::Entity ECS::EntityManager::CreateEntity()
 {
-  assert(_LivingEntityCount < MAX_ENTITIES && "Too many entities alive.");
+  assert(_livingEntityCount < MAX_ENTITIES && "Too many entities alive.");
 
   // pick next unused ID in queue
-  Entity id = _EntityIDs.front();
+  Entity id = _entityIDs.front();
 
   // remove from queue
-  _EntityIDs.pop();
+  _entityIDs.pop();
   // mark as used
-  ++_LivingEntityCount;
+  ++_livingEntityCount;
 
   return id;
 }
 
 // =======================================================
-void EntityManager::DestroyEntity(Entity e)
+void ECS::EntityManager::DestroyEntity(Entity entity)
 {
-  assert(e < MAX_ENTITIES && "Entity is out of range.");
+  assert(entity < MAX_ENTITIES && "Entity is out of range.");
 
-  assert(_Signatures[e].none() && "You're trying to destroy an entity with active components.");
+  assert(_signatures[entity].none() && "You're trying to destroy an entity with active components.");
 
   // Since the entity carries it's own valid signature when living
   // must reset the entities signature
 
   // since entity is only a int, it's used as the index for it's signature
-  _Signatures[e].reset();
+  _signatures[entity].reset();
 
   // reuse the id before entity is destroyed
   // push the now unused id to the back of the queue
-  _EntityIDs.push(e);
-  --_LivingEntityCount;
+  _entityIDs.push(entity);
+  --_livingEntityCount;
 }
 
 // =======================================================
-void EntityManager::SetSignature(Entity e, Signature s)
+void ECS::EntityManager::SetSignature(Entity entity, Signature signature)
 {
   // signatures array is the same size as the max entites.
-  assert(e < MAX_ENTITIES && "Entity is out of range.");
+  assert(entity < MAX_ENTITIES && "Entity is out of range.");
 
-  _Signatures[e] = s;
+  _signatures[entity] = signature;
   // current entity's signature is now in the array.
 }
 
 // =======================================================
-const Signature &EntityManager::GetSignature(Entity e) const
+const ECS::Signature &ECS::EntityManager::GetSignature(Entity entity) const
 {
-  assert(e < MAX_ENTITIES && "Entity is out of range.");
+  assert(entity < MAX_ENTITIES && "Entity is out of range.");
 
-  return _Signatures[e];
+  return _signatures[entity];
 }

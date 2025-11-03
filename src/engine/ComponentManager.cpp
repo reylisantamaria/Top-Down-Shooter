@@ -2,13 +2,11 @@
 #include "engine/Types.h"
 #include <cassert>
 
-using namespace ECS;
-
 // =======================================================
-// Non-template function implementations
+// ComponentManager (non-template function implementations)
 // =======================================================
 
-void ComponentManager::EntityDestroyed(Entity e)
+void ECS::ComponentManager::EntityDestroyed(Entity e)
 {
   for (auto const &pair : _componentStorage)
   {

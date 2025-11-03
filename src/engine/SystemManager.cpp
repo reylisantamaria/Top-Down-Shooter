@@ -1,20 +1,19 @@
 #include "engine/SystemManager.h"
 
-using namespace ECS;
-
 // =======================================================
-// Non-template function implementations
+// SystemManager (non-template function implementations)
 // =======================================================
 
-void SystemManager::EntityDestroyed(Entity entity)
+void ECS::SystemManager::EntityDestroyed(Entity entity)
 {
   for (const auto &pair : _systems)
   {
-    pair.second->_Entities.erase(entity);
+    const auto &system = pair.second;
+    system->_entitiesSet.erase(entity);
   }
 }
 
-void SystemManager::EntitySignatureChanged(Entity entity, Signature entitySignature)
+void ECS::SystemManager::EntitySignatureChanged(Entity entity, Signature entitySignature)
 {
   for (const auto &pair : _systems)
   {
@@ -33,12 +32,11 @@ void SystemManager::EntitySignatureChanged(Entity entity, Signature entitySignat
     // Comparison:          [1, 1, 0, 0, 0] == [1, 1, 0, 0, 0]
     if ((entitySignature & systemSignature) == systemSignature)
     {
-      system->_Entities.insert(entity);
+      system->_entitiesSet.insert(entity);
     }
     else
     {
-      system->_Entities.erase(entity);
+      system->_entitiesSet.erase(entity);
     }
   }
 }
-// =======================================================
