@@ -6,7 +6,7 @@
 
 #include "Types.h"
 
-namespace ECS
+namespace Engine
 {
   // =======================================================
   // IComponentArray: Base interface for polymorphism

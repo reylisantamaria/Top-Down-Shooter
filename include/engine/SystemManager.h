@@ -8,7 +8,7 @@
 
 #include "Types.h"
 
-namespace ECS
+namespace Engine
 {
   // =======================================================
   // System: Base class for all game logic systems

@@ -4,7 +4,7 @@
 // SystemManager (non-template function implementations)
 // =======================================================
 
-void ECS::SystemManager::EntityDestroyed(Entity entity)
+void Engine::SystemManager::EntityDestroyed(Entity entity)
 {
   for (const auto &pair : _systems)
   {
@@ -13,7 +13,7 @@ void ECS::SystemManager::EntityDestroyed(Entity entity)
   }
 }
 
-void ECS::SystemManager::EntitySignatureChanged(Entity entity, Signature entitySignature)
+void Engine::SystemManager::EntitySignatureChanged(Entity entity, Signature entitySignature)
 {
   for (const auto &pair : _systems)
   {

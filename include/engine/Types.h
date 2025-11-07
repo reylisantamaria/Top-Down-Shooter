@@ -20,7 +20,7 @@
  *   Also used by systems to specify required components.
  */
 
-namespace ECS
+namespace Engine
 {
   using Entity = std::uint32_t;
   constexpr Entity MAX_ENTITIES = 1000;

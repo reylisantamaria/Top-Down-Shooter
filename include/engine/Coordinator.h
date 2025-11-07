@@ -17,7 +17,7 @@
  * - Manages the registration, addition, and removal of systems
  * - Manages the matching of entities to systems based on component signatures
  */
-namespace ECS
+namespace Engine
 {
   class Coordinator
   {

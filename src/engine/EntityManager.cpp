@@ -6,7 +6,7 @@
 // EntityManager (non-template function implementations)
 // =======================================================
 
-ECS::EntityManager::EntityManager()
+Engine::EntityManager::EntityManager()
 {
   // initialize the queue
   for (Entity entity = 0; entity < MAX_ENTITIES; ++entity)
@@ -16,7 +16,7 @@ ECS::EntityManager::EntityManager()
 }
 
 // =======================================================
-ECS::Entity ECS::EntityManager::CreateEntity()
+Engine::Entity Engine::EntityManager::CreateEntity()
 {
   assert(_livingEntityCount < MAX_ENTITIES && "Too many entities alive.");
 
@@ -32,7 +32,7 @@ ECS::Entity ECS::EntityManager::CreateEntity()
 }
 
 // =======================================================
-void ECS::EntityManager::DestroyEntity(Entity entity)
+void Engine::EntityManager::DestroyEntity(Entity entity)
 {
   assert(entity < MAX_ENTITIES && "Entity is out of range.");
 
@@ -51,7 +51,7 @@ void ECS::EntityManager::DestroyEntity(Entity entity)
 }
 
 // =======================================================
-void ECS::EntityManager::SetSignature(Entity entity, Signature signature)
+void Engine::EntityManager::SetSignature(Entity entity, Signature signature)
 {
   // signatures array is the same size as the max entites.
   assert(entity < MAX_ENTITIES && "Entity is out of range.");
@@ -61,7 +61,7 @@ void ECS::EntityManager::SetSignature(Entity entity, Signature signature)
 }
 
 // =======================================================
-const ECS::Signature &ECS::EntityManager::GetSignature(Entity entity) const
+const Engine::Signature &Engine::EntityManager::GetSignature(Entity entity) const
 {
   assert(entity < MAX_ENTITIES && "Entity is out of range.");
 

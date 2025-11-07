@@ -24,7 +24,7 @@
  * - Assigns each type a unique ID for signature matching
  */
 
-namespace ECS
+namespace Engine
 {
   class ComponentManager
   {

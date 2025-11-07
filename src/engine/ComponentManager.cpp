@@ -6,7 +6,7 @@
 // ComponentManager (non-template function implementations)
 // =======================================================
 
-void ECS::ComponentManager::EntityDestroyed(Entity e)
+void Engine::ComponentManager::EntityDestroyed(Entity e)
 {
   for (auto const &pair : _componentStorage)
   {

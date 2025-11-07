@@ -21,7 +21,7 @@
  * - Implement game logic (Systems do this)
  */
 
-namespace ECS
+namespace Engine
 {
   class EntityManager
   {
