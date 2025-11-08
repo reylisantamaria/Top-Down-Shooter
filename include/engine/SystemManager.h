@@ -51,6 +51,9 @@ namespace Engine
     std::shared_ptr<T> RegisterSystem();
 
     template <typename T>
+    std::shared_ptr<T> GetSystem();
+
+    template <typename T>
     void SetSystemSignature(Signature signature);
 
     void EntityDestroyed(Entity entity);
@@ -81,6 +84,14 @@ namespace Engine
     _systems.insert({typeIndex, system}); // Store it in our map
 
     return system; // Return the system so the caller can configure it
+  }
+
+  template <typename T>
+  std::shared_ptr<T> SystemManager::GetSystem()
+  {
+    std::type_index typeIndex = typeid(T);
+    assert(_systems.find(typeIndex) != _systems.end() && "The system doesn't exist");
+    return std::static_pointer_cast<T>(_systems[typeIndex]);
   }
 
   template <typename T>

@@ -67,3 +67,9 @@ const Engine::Signature &Engine::EntityManager::GetSignature(Entity entity) cons
 
   return _signatures[entity];
 }
+
+// =======================================================
+size_t Engine::EntityManager::GetLivingEntityCount() const
+{
+  return _livingEntityCount;
+}

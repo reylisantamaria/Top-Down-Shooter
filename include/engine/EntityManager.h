@@ -32,6 +32,7 @@ namespace Engine
     void SetSignature(Entity entity, Signature signature);
     const Signature &GetSignature(Entity entity) const;
 
+    size_t GetLivingEntityCount() const;
   private:
     std::queue<Entity> _entityIDs{}; // Available entity IDs
                                      // When we destroy an entity, its ID goes back in the queue for reuse

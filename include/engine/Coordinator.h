@@ -45,6 +45,8 @@ namespace Engine
     std::shared_ptr<T> RegisterSystem();
     template <typename T>
     void SetSystemSignature(Signature signature);
+    template <typename T>
+    std::shared_ptr<T> GetSystem();
 
     // helper function
     template <typename... ComponentTypes>
@@ -112,6 +114,12 @@ namespace Engine
   void Coordinator::SetSystemSignature(Signature signature)
   {
     _systemManager->SetSystemSignature<T>(signature);
+  }
+
+  template <typename T>
+  std::shared_ptr<T> Coordinator::GetSystem()
+  {
+    return _systemManager->GetSystem<T>();
   }
 
   template <typename... ComponentTypes>
