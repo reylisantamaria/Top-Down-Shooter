@@ -22,7 +22,8 @@ namespace Engine
   class Coordinator
   {
   public:
-    void Init();
+    // Get the singleton instance
+    static Coordinator &GetInstance();
 
     // Entities
     Entity CreateEntity();
@@ -41,16 +42,10 @@ namespace Engine
     ComponentType GetComponentType();
 
     // Systems
-    template <typename T>
+    template <typename T, typename... ComponentTypes>
     std::shared_ptr<T> RegisterSystem();
     template <typename T>
-    void SetSystemSignature(Signature signature);
-    template <typename T>
     std::shared_ptr<T> GetSystem();
-
-    // helper function
-    template <typename... ComponentTypes>
-    Signature CreateSignature();
 
   private:
     std::unique_ptr<ComponentManager> _componentManager; // Manages all component storage and retrieval
@@ -62,11 +57,13 @@ namespace Engine
   // Coordinator (template implementations)
   // =======================================================
 
+  
   template <typename... ComponentTypes>
   void Coordinator::RegisterComponents()
   {
     (_componentManager->RegisterComponent<ComponentTypes>(), ...);
   }
+
 
   template <typename T>
   void Coordinator::AddComponent(Entity entity, T component)
@@ -80,6 +77,7 @@ namespace Engine
     _systemManager->EntitySignatureChanged(entity, signature); // Notify all systems that the entity signature has changed
   }
 
+
   template <typename T>
   void Coordinator::RemoveComponent(Entity entity)
   {
@@ -92,11 +90,13 @@ namespace Engine
     _systemManager->EntitySignatureChanged(entity, signature); // Notify all systems that the entity signature has changed
   }
 
+
   template <typename T>
   T &Coordinator::GetComponent(Entity entity)
   {
     return _componentManager->GetComponent<T>(entity);
   }
+
 
   template <typename T>
   ComponentType Coordinator::GetComponentType()
@@ -104,32 +104,30 @@ namespace Engine
     return _componentManager->GetComponentType<T>();
   }
 
-  template <typename T>
+
+  template <typename T, typename... ComponentTypes>
   std::shared_ptr<T> Coordinator::RegisterSystem()
   {
-    return _systemManager->RegisterSystem<T>();
+    static_assert(sizeof...(ComponentTypes) > 0, "System must have at least one component");
+    static_assert((std::is_class_v<ComponentTypes> && ...), "All components must be structs/classes");
+
+    // must register the system first
+    auto system = _systemManager->RegisterSystem<T>();
+
+    // Create the signature for the system
+    Signature signature;
+    (signature.set(GetComponentType<ComponentTypes>()), ...);
+
+    // Set the signature for the system
+    _systemManager->SetSystemSignature<T>(signature);
+
+    return system;
   }
 
-  template <typename T>
-  void Coordinator::SetSystemSignature(Signature signature)
-  {
-    _systemManager->SetSystemSignature<T>(signature);
-  }
 
   template <typename T>
   std::shared_ptr<T> Coordinator::GetSystem()
   {
     return _systemManager->GetSystem<T>();
-  }
-
-  template <typename... ComponentTypes>
-  Signature Coordinator::CreateSignature()
-  {
-    Signature signature;
-    if constexpr (sizeof...(ComponentTypes) > 0)
-    {
-      (signature.set(GetComponentType<ComponentTypes>()), ...);
-    }
-    return signature;
   }
 }

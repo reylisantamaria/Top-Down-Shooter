@@ -4,7 +4,13 @@
 // Coordinator (non-template function implementations)
 // =======================================================
 
-void Engine::Coordinator::Init()
+Engine::Coordinator &Engine::Coordinator::GetInstance()
+{
+  static Coordinator instance;
+  return instance;
+}
+
+Engine::Coordinator::Coordinator()
 {
   _componentManager = std::make_unique<ComponentManager>();
   _entityManager = std::make_unique<EntityManager>();
