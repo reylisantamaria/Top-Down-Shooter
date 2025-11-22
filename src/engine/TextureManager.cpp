@@ -112,7 +112,7 @@ void Engine::TextureManager::Unload(TextureID id)
 // =============================================================================
 void Engine::TextureManager::Clear()
 {
-  for (auto &[id, texture] : _textures)
+  for (const auto &[id, texture] : _textures)
   {
     if (texture)
     {

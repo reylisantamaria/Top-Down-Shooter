@@ -1,7 +1,7 @@
 #include "engine/EntityManager.h"
 
 #include <cassert>
-  
+
 // =======================================================
 // EntityManager (non-template function implementations)
 // =======================================================

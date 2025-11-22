@@ -8,9 +8,8 @@
 
 void Engine::ComponentManager::EntityDestroyed(Entity e)
 {
-  for (auto const &pair : _componentStorage)
+  for (const auto &[type, component] : _componentStorage)
   {
-    auto const &component = pair.second;
     component->EntityDestroyed(e);
   }
 }
