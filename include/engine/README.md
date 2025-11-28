@@ -9,6 +9,7 @@ This is my take on an ECS. It uses packed arrays for cache-friendly performance 
 All ECS operations go through the `Coordinator` singleton. Here's every function available:
 
 | Category                 | Function                                                    | Description                                                                                                                                             | Returns                       |
+| ------------------------ | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------- |
 | **Singleton**            | `GetInstance()`                                             | Get the Coordinator singleton instance                                                                                                                  | `Coordinator&`                |
 | **Entity Management**    | `CreateEntity()`                                            | Create a new entity ID                                                                                                                                  | `Entity` (uint32_t)           |
 |                          | `DestroyEntity(Entity entity)`                              | Destroy an entity and remove all its components                                                                                                         | `void`                        |
