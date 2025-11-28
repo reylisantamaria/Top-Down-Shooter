@@ -3,9 +3,6 @@
 #include <unordered_map>
 #include <string>
 
-// =============================================================================
-// Texture Assets
-// =============================================================================
 // This file focuses on all texture asset IDs and file paths for the game.
 
 enum class TextureID

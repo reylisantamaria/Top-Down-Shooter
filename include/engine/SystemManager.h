@@ -10,9 +10,6 @@
 
 namespace Engine
 {
-  // =======================================================
-  // System: Base class for all game logic systems
-  // =======================================================
 
   /*
    * Implements game logic by looping through entities it cares about
@@ -30,13 +27,9 @@ namespace Engine
   class System
   {
   public:
-    std::set<Entity> _entitiesSet; // Which entities this system cares about
-                                   // Updated automatically by SystemManager when entity signatures change
+    std::set<Entity> _entities; // Which entities this system cares about
+                                // Updated automatically by SystemManager when entity signatures change
   };
-
-  // =======================================================
-  // SystemManager: Matchmaker between entities and systems
-  // =======================================================
 
   /*
    * Figures out which entities belong in which systems based on component signatures
@@ -51,27 +44,22 @@ namespace Engine
     std::shared_ptr<T> RegisterSystem();
 
     template <typename T>
-    std::shared_ptr<T> GetSystem();
-
-    template <typename T>
-    void SetSystemSignature(Signature signature);
+    void SetSystemSignature(const Signature &signature);
 
     void EntityDestroyed(Entity entity);
 
-    void EntitySignatureChanged(Entity entity, Signature entitySignature);
+    void EntitySignatureChanged(Entity entity, const Signature &entitySignature);
 
   private:
-    std::unordered_map<std::type_index, std::shared_ptr<System>> _systems{}; // Map: system type → its implementation
-                                                                             // Why: We need to store the actual System objects
-                                                                             // Example: PhysicsSystem → System implementation
+    std::unordered_map<std::type_index, std::shared_ptr<System>> _systems{};  // Map: system type → its implementation
+                                                                              // Why: We need to store the actual System objects
+                                                                              // Example: PhysicsSystem → System implementation
 
-    std::unordered_map<std::type_index, Signature> _signatures{}; // Map: system type → its required component signature
-                                                                  // Why: We need to know which components each system requires
-                                                                  // Example: PhysicsSystem requires Transform and Velocity components
+    std::unordered_map<std::type_index, Signature> _signatures{};             // Map: system type → its required component signature
+                                                                              // Why: We need to know which components each system requires
+                                                                              // Example: PhysicsSystem requires Transform and Velocity components
   };
 
-  // =======================================================
-  // Template implementations
   // =======================================================
 
   template <typename T>
@@ -83,23 +71,15 @@ namespace Engine
     auto system = std::make_shared<T>();  // Create the system instance
     _systems.insert({typeIndex, system}); // Store it in our map
 
-    return system; // Return the system so the caller can configure it
+    return system;                        // Return the system so the caller can configure it
   }
 
   template <typename T>
-  std::shared_ptr<T> SystemManager::GetSystem()
-  {
-    std::type_index typeIndex = typeid(T);
-    assert(_systems.find(typeIndex) != _systems.end() && "The system doesn't exist");
-    return std::static_pointer_cast<T>(_systems[typeIndex]);
-  }
-
-  template <typename T>
-  void SystemManager::SetSystemSignature(Signature signature)
+  void SystemManager::SetSystemSignature(const Signature &signature)
   {
     std::type_index typeIndex = typeid(T);
     assert(_systems.find(typeIndex) != _systems.end() && "The system doesn't exist");
 
-    _signatures[typeIndex] = signature; // Store the signature so we can match entities to this system
+    _signatures[typeIndex] = signature;  // Store the signature so we can match entities to this system
   }
 }

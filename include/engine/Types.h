@@ -2,10 +2,6 @@
 #include <bitset>
 #include <cstdint>
 
-// =======================================================
-// Core ECS Type Definitions
-// =======================================================
-
 /*
  * Entity:
  *   A unique ID representing a game object (player, enemy, bullet, etc.)

@@ -1,16 +1,35 @@
+#pragma once
+
 #include <SDL3/SDL.h>
-#include <SDL3_image/SDL_image.h>
-
 #include <memory>
+#include "engine/Coordinator.h"
+#include "game/Systems.h"
+#include "game/Components.h"
 
-class Game {
-  public:
-    Game();
-    bool init();
-    void run();
-  private:
-    SDL_Window* window_;
-    SDL_Renderer* renderer_;
-    bool running_;
-    std::shared_ptr<Player> player_;
+class Game
+{
+public:
+  Game() = default;
+  ~Game();
+  bool Init();
+  void Run();
+
+private:
+  // Initialization
+  bool InitSDL();
+  bool InitECS();
+  bool LoadAssets();
+
+  // Game loop methods
+  void HandleEvents();
+  void Update(float deltaTime);
+  void Render() const;
+  void Cleanup();
+  
+  // SDL members
+  SDL_Window *_window = nullptr;
+  SDL_Renderer *_renderer = nullptr;
+  bool _running = false;
+
+  std::shared_ptr<Systems::RenderSystem> _renderSystem;
 };

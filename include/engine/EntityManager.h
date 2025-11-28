@@ -2,6 +2,7 @@
 
 #include <array>
 #include <queue>
+#include <set>
 
 #include "Types.h"
 
@@ -29,17 +30,17 @@ namespace Engine
     EntityManager();
     Entity CreateEntity();
     void DestroyEntity(Entity entity);
-    void SetSignature(Entity entity, Signature signature);
+    void SetSignature(Entity entity, const Signature &signature);
     const Signature &GetSignature(Entity entity) const;
 
     size_t GetLivingEntityCount() const;
   private:
-    std::queue<Entity> _entityIDs{}; // Available entity IDs
-                                     // When we destroy an entity, its ID goes back in the queue for reuse
+    std::queue<Entity> _entityIDs{};                    // Available entity IDs
+                                                        // When we destroy an entity, its ID goes back in the queue for reuse
 
-    std::array<Signature, MAX_ENTITIES> _signatures{}; // Signatures for each entity
-                                                       // Index by entity ID to get its signature
+    std::array<Signature, MAX_ENTITIES> _signatures{};  // Signatures for each entity
+                                                        // Index by entity ID to get its signature
 
-    size_t _livingEntityCount{}; // Total living entities - keep track for debugging and validation
+    size_t _livingEntityCount{};                        // Total living entities - keep track for debugging and validation
   };
 }

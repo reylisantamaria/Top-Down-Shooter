@@ -1,15 +1,10 @@
 #pragma once
 
 #include <memory>
-
 #include "Types.h"
 #include "ComponentManager.h"
 #include "EntityManager.h"
 #include "SystemManager.h"
-
-// =======================================================
-// Coordinator
-// =======================================================
 
 /* What it does:
  * - Manages the creation, destruction, and component signatures of entities
@@ -22,66 +17,51 @@ namespace Engine
   class Coordinator
   {
   public:
-    // Get the singleton instance
-    static Coordinator &GetInstance();
+    static Coordinator &GetInstance();                          // Get the singleton instance
 
-    // Entities
-    Entity CreateEntity();
-    void DestroyEntity(Entity entity);
+    Entity CreateEntity();                                      // Create a new entity
+    void DestroyEntity(Entity entity);                          // Destroy an entity
 
-    // Components
-    template <typename... ComponentTypes>
-    void RegisterComponents();
     template <typename T>
-    void AddComponent(Entity entity, T component);
+    void AddComponent(Entity entity, const T &component);       // Add a component to an entity
     template <typename T>
-    void RemoveComponent(Entity entity);
+    void RemoveComponent(Entity entity);                        // Remove a component from an entity
     template <typename T>
-    T &GetComponent(Entity entity);
+    T &Get(Entity entity) const;                                // Get a component from an entity
     template <typename T>
-    ComponentType GetComponentType();
+    T *GetOptional(Entity entity) const;                        // Safe to request a component that may not exist
 
-    // Systems
-    template <typename T, typename... ComponentTypes>
-    std::shared_ptr<T> RegisterSystem();
-    template <typename T>
-    std::shared_ptr<T> GetSystem();
-
+    template <typename T, typename... Components>
+    std::shared_ptr<T> RegisterSystem();                        // Register a system
   private:
-    std::unique_ptr<ComponentManager> _componentManager; // Manages all component storage and retrieval
-    std::unique_ptr<EntityManager> _entityManager;       // Manages entity creation, destruction, and signatures
-    std::unique_ptr<SystemManager> _systemManager;       // Manages systems and entity-to-system matching
+    Coordinator();
+
+    template <typename T>
+    ComponentType GetComponentType() const;               // Get the component type for a given component (helper)
+
+    std::unique_ptr<ComponentManager> _componentManager;        // Manages all component storage and retrieval
+    std::unique_ptr<EntityManager> _entityManager;              // Manages entity creation, destruction, and signatures
+    std::unique_ptr<SystemManager> _systemManager;              // Manages systems and entity-to-system matching
   };
 
   // =======================================================
-  // Coordinator (template implementations)
-  // =======================================================
-
-  
-  template <typename... ComponentTypes>
-  void Coordinator::RegisterComponents()
-  {
-    (_componentManager->RegisterComponent<ComponentTypes>(), ...);
-  }
-
 
   template <typename T>
-  void Coordinator::AddComponent(Entity entity, T component)
+  void Coordinator::AddComponent(Entity entity, const T &component)
   {
-    _componentManager->AddComponent<T>(entity, component); // Add component to its component array
+    _componentManager->AddComponent<T>(entity, component);     // Add component to its component array
 
-    auto signature = _entityManager->GetSignature(entity);   // Get current entity signature
-    signature.set(_componentManager->GetComponentType<T>()); // Turn on the bit for this component type
-    _entityManager->SetSignature(entity, signature);         // Update the entity's signature
+    auto signature = _entityManager->GetSignature(entity);     // Get current entity signature
+    signature.set(_componentManager->GetComponentType<T>());   // Turn on the bit for this component type
+    _entityManager->SetSignature(entity, signature);           // Update the entity's signature
 
     _systemManager->EntitySignatureChanged(entity, signature); // Notify all systems that the entity signature has changed
   }
 
-
   template <typename T>
   void Coordinator::RemoveComponent(Entity entity)
   {
-    _componentManager->RemoveComponent<T>(entity); // Remove component from its component array
+    _componentManager->RemoveComponent<T>(entity);             // Remove component from its component array
 
     auto signature = _entityManager->GetSignature(entity);     // Get current entity signature
     signature.reset(_componentManager->GetComponentType<T>()); // Turn off the bit for this component type
@@ -90,33 +70,24 @@ namespace Engine
     _systemManager->EntitySignatureChanged(entity, signature); // Notify all systems that the entity signature has changed
   }
 
-
   template <typename T>
-  T &Coordinator::GetComponent(Entity entity)
+  T &Coordinator::Get(Entity entity) const
   {
     return _componentManager->GetComponent<T>(entity);
   }
-
-
-  template <typename T>
-  ComponentType Coordinator::GetComponentType()
-  {
-    return _componentManager->GetComponentType<T>();
-  }
-
-
-  template <typename T, typename... ComponentTypes>
+  
+  template <typename T, typename... Components>
   std::shared_ptr<T> Coordinator::RegisterSystem()
   {
-    static_assert(sizeof...(ComponentTypes) > 0, "System must have at least one component");
-    static_assert((std::is_class_v<ComponentTypes> && ...), "All components must be structs/classes");
+    static_assert(sizeof...(Components) > 0, "System must have at least one component");
+    static_assert((std::is_class_v<Components> && ...), "All components must be structs/classes");
 
-    // must register the system first
+    // Must register the system first
     auto system = _systemManager->RegisterSystem<T>();
 
     // Create the signature for the system
     Signature signature;
-    (signature.set(GetComponentType<ComponentTypes>()), ...);
+    (signature.set(GetComponentType<Components>()), ...);
 
     // Set the signature for the system
     _systemManager->SetSystemSignature<T>(signature);
@@ -124,10 +95,20 @@ namespace Engine
     return system;
   }
 
+  template <typename Component>
+  Component *Coordinator::GetOptional(Entity entity) const
+  {
+    ComponentType componentType = GetComponentType<Component>();
+
+    if (_entityManager->GetSignature(entity).test(componentType)) {
+      return &_componentManager->GetComponent<Component>(entity);
+    }
+    return nullptr;
+  }
 
   template <typename T>
-  std::shared_ptr<T> Coordinator::GetSystem()
+  ComponentType Coordinator::GetComponentType() const
   {
-    return _systemManager->GetSystem<T>();
+    return _componentManager->GetComponentType<T>();
   }
 }

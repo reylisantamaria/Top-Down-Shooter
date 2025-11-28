@@ -8,9 +8,6 @@
 #include "ComponentArray.h"
 #include "Types.h"
 
-// =======================================================
-// ComponentManager
-// =======================================================
 
 /* What it does:
  * - Registers component types (Transform, Velocity, Health, etc.)
@@ -33,80 +30,87 @@ namespace Engine
     void RegisterComponent();
 
     template <typename T>
-    ComponentType GetComponentType();
+    ComponentType GetComponentType() const;
 
     template <typename T>
-    void AddComponent(Entity e, T component);
+    void AddComponent(Entity entity, const T &component);
 
     template <typename T>
-    void RemoveComponent(Entity e);
+    void RemoveComponent(Entity entity);
 
     template <typename T>
-    T &GetComponent(Entity e);
+    T &GetComponent(Entity entity) const;
 
-    void EntityDestroyed(Entity e);
+    void EntityDestroyed(Entity entity);
 
   private:
-    std::unordered_map<std::type_index, ComponentType> _componentTypes{}; // Map: component type name → unique ID (0, 1, 2, ...)
-                                                                          // Why: We need a number to represent each component type for signatures (bitsets)
-                                                                          // Example: Transform=0, Velocity=1, Health=2
+    std::unordered_map<std::type_index, ComponentType> _componentTypes{};                      // Map: component type name → unique ID (0, 1, 2, ...)
+                                                                                               // Why: We need a number to represent each component type for signatures (bitsets)
+                                                                                               // Example: Transform=0, Velocity=1, Health=2
 
     std::unordered_map<std::type_index, std::shared_ptr<IComponentArray>> _componentStorage{}; // Map: component type → its storage array
                                                                                                // Why: Each component type needs its own packed array
                                                                                                // The trick: ComponentArray<Transform> and ComponentArray<Velocity> are different types,
                                                                                                // but they both inherit from IComponentArray, so we can store them together
 
-    ComponentType _nextComponentType{}; // Counter: The next component type ID to assign
-                                        // Starts at 0, increments each time we register a new component type
+    ComponentType _nextComponentType{};                                                        // Counter: The next component type ID to assign
+                                                                                               // Starts at 0, increments each time we register a new component type
 
     template <typename T>
-    std::shared_ptr<ComponentArray<T>> GetComponentArray();
+    std::shared_ptr<ComponentArray<T>> GetComponentArray() const;
   };
 
-  // =======================================================
-  // ComponentManager (template implementations)
   // =======================================================
 
   template <typename T>
   void ComponentManager::RegisterComponent()
   {
     std::type_index typeIndex = typeid(T);
-    assert(_componentTypes.find(typeIndex) == _componentTypes.end() && "Registering component type more than once.");
+    if (_componentTypes.find(typeIndex) != _componentTypes.end())                 // Silently return if already registered (allows auto-registration to be safe)
+    {
+      return;
+    }
 
     _componentTypes.insert({typeIndex, _nextComponentType});                      // Give this component type a unique ID number
     _componentStorage.insert({typeIndex, std::make_shared<ComponentArray<T>>()}); // Create a new array to store all components of this type
 
-    ++_nextComponentType; // Increment so the next component type gets a different ID
+    ++_nextComponentType;                                                         // Increment so the next component type gets a different ID
   }
 
   template <typename T>
-  ComponentType ComponentManager::GetComponentType()
+  ComponentType ComponentManager::GetComponentType() const
   {
     std::type_index typeIndex = typeid(T);
-    assert(_componentTypes.find(typeIndex) != _componentTypes.end() && "Component not registered before use.");
+
+    // Auto-register component if not already registered (like EnTT)
+    if (_componentTypes.find(typeIndex) == _componentTypes.end())
+    {
+      RegisterComponent<T>();
+    }
+
     return _componentTypes[typeIndex];
   }
 
   template <typename T>
-  void ComponentManager::AddComponent(Entity e, T component)
+  void ComponentManager::AddComponent(Entity entity, const T &component)
   {
-    GetComponentArray<T>()->AddElement(e, component);
+    GetComponentArray<T>()->AddElement(entity, component);
   }
 
   template <typename T>
-  void ComponentManager::RemoveComponent(Entity e)
+  void ComponentManager::RemoveComponent(Entity entity)
   {
-    GetComponentArray<T>()->RemoveElement(e);
+    GetComponentArray<T>()->RemoveElement(entity);
   }
 
   template <typename T>
-  T &ComponentManager::GetComponent(Entity e)
+  T &ComponentManager::GetComponent(Entity entity) const
   {
-    return GetComponentArray<T>()->GetData(e);
+    return GetComponentArray<T>()->GetData(entity);
   }
 
   template <typename T>
-  std::shared_ptr<ComponentArray<T>> ComponentManager::GetComponentArray()
+  std::shared_ptr<ComponentArray<T>> ComponentManager::GetComponentArray() const
   {
     std::type_index typeIndex = typeid(T);
     assert(_componentStorage.find(typeIndex) != _componentStorage.end() && "Component not registered before use.");

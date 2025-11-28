@@ -1,8 +1,10 @@
 #include <SDL3/SDL.h>
 #include "Game.h"
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[])
+{
   Game game;
-  game.run();
+  if (!game.Init()) return 1;
+  game.Run();
   return 0;
 }

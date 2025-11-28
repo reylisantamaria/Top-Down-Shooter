@@ -1,88 +1,162 @@
 #include "Game.h"
+#include "game/TextureAssets.h"
+#include "engine/TextureManager.h"
 #include <iostream>
 
-constexpr int WINDOW_WIDTH = 1280;
-constexpr int WINDOW_HEIGHT = 720;
-constexpr int WINDOW_FLAGS = SDL_WINDOW_RESIZABLE;
-
-Game::Game() {
-  if (!init()) {
-    std::cerr << "Failed to initialize game" << std::endl;
-    exit(1);
-  }
+// Window configuration
+namespace Config
+{
+  constexpr int WINDOW_WIDTH = 1280;
+  constexpr int WINDOW_HEIGHT = 720;
+  constexpr Uint32 WINDOW_FLAGS = SDL_WINDOW_RESIZABLE;
+  constexpr const char *WINDOW_TITLE = "Top-Down Shooter";
 }
 
-bool Game::init() {
-  // Initialize SDL
-  if (!SDL_Init(SDL_INIT_VIDEO)) {
-    std::cerr << "SDL could not initialize! SDL_Error: " << SDL_GetError() << std::endl;
+bool Game::Init()
+{
+  if (!InitSDL())
+  {
+    Cleanup();
+    return false;
+  }
+  if (!InitECS())
+  {
+    Cleanup();
+    return false;
+  }
+  if (!LoadAssets())
+  {
+    Cleanup();
+    return false;
+  }
+  return true;
+}
+
+Game::~Game()
+{
+  Cleanup();
+}
+
+bool Game::InitSDL()
+{
+  if (!SDL_Init(SDL_INIT_VIDEO))
+  {
+    std::cerr << "SDL initialization failed: " << SDL_GetError() << std::endl;
     return false;
   }
 
-  // Create window
-  window_ = SDL_CreateWindow("Top-Down Shooter", WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_FLAGS);
-  if (window_ == nullptr) {
-    std::cerr << "Window could not be created! SDL_Error: " << SDL_GetError() << std::endl;
+  _window = SDL_CreateWindow(
+      Config::WINDOW_TITLE,
+      Config::WINDOW_WIDTH,
+      Config::WINDOW_HEIGHT,
+      Config::WINDOW_FLAGS);
+
+  if (!_window)
+  {
+    std::cerr << "Window creation failed: " << SDL_GetError() << std::endl;
     SDL_Quit();
     return false;
   }
 
-  // Create renderer
-  renderer_ = SDL_CreateRenderer(window_, nullptr);
-  if (renderer_ == nullptr) {
-    std::cerr << "Renderer could not be created! SDL_Error: " << SDL_GetError() << std::endl;
-    SDL_DestroyWindow(window_);
+  _renderer = SDL_CreateRenderer(_window, nullptr);
+  if (!_renderer)
+  {
+    std::cerr << "Renderer creation failed: " << SDL_GetError() << std::endl;
+    SDL_DestroyWindow(_window);
+    _window = nullptr;
     SDL_Quit();
     return false;
   }
-  running_ = true;
 
-  // Create player
-  player_ = std::make_shared<Player>(renderer_, "../images/spaceships/ship/purple.png", 100.0f, 100.0f);
-  player_->CenterToScreen(WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2);
+  _running = true;
+  return true;
+}
+
+bool Game::InitECS()
+{
+  auto &coordinator = Engine::Coordinator::GetInstance();
+
+  // Register and configure render system
+  // Components are automatically registered when used
+  _renderSystem = coordinator.RegisterSystem<Systems::RenderSystem, 
+                                             Components::Transform,
+                                             Components::Sprite>();
+
+  // Initialize render system with renderer and texture manager
+  _renderSystem->Init(_renderer, &Engine::TextureManager::GetInstance());
 
   return true;
 }
 
-void Game::run() {
+bool Game::LoadAssets()
+{
+  auto &texManager = Engine::TextureManager::GetInstance();
+  texManager.Init(_renderer);
+  texManager.LoadAllTextures();
 
-  Uint64 lastTime = SDL_GetPerformanceCounter();
+  return true;
+}
+
+void Game::Run()
+{
   float deltaTime = 0.0f;
 
-  // Main loop
-  while (running_) {
-    // Get the current time
-    Uint64 currentTime = SDL_GetPerformanceCounter();
-    // Calculate the delta time
-    deltaTime = (currentTime - lastTime) / (float)SDL_GetPerformanceFrequency();
-    // Update the last time
-    lastTime = currentTime;
+  while (_running)
+  {
+    Uint64 frameStart = SDL_GetTicks();
 
-    SDL_Event event;
-    while (SDL_PollEvent(&event)) {
-      if (event.type == SDL_EVENT_QUIT) {
-        running_ = false;
-      }
-    }
-    const bool* keystate = SDL_GetKeyboardState(NULL);
-    player_->Update(keystate, deltaTime);
+    HandleEvents();
+    Update(deltaTime);
+    Render();
 
-    // Draw background
-    SDL_SetRenderDrawColor(renderer_, 25, 25, 25, 255);
-
-    // Clear screen
-    SDL_RenderClear(renderer_);
-
-    // Draw player
-    player_->draw(renderer_);
-
-    // Update screen
-    SDL_RenderPresent(renderer_);
+    Uint64 frameDuration = SDL_GetTicks() - frameStart;
+    deltaTime = frameDuration / 1000.0f;
   }
 
-  // Clean up
-  SDL_DestroyRenderer(renderer_);
-  SDL_DestroyWindow(window_);
+  Cleanup();
+}
+
+void Game::HandleEvents()
+{
+  SDL_Event event;
+  while (SDL_PollEvent(&event))
+  {
+    if (event.type == SDL_EVENT_QUIT)
+    {
+      _running = false;
+    }
+  }
+}
+
+void Game::Update(float deltaTime)
+{
+  // Future: Add game systems updates here (movement, physics, etc.)
+  // Example: _movementSystem->Update(deltaTime);
+}
+
+void Game::Render() const
+{
+  // Clear screen with dark gray color
+  SDL_SetRenderDrawColor(_renderer, 25, 25, 25, 255);
+  SDL_RenderClear(_renderer);
+
+  // Render all entities with the render system
+  _renderSystem->Update();
+
+  SDL_RenderPresent(_renderer);
+}
+
+void Game::Cleanup()
+{
+  if (_renderer)
+  {
+    SDL_DestroyRenderer(_renderer);
+    _renderer = nullptr;
+  }
+  if (_window) {
+    SDL_DestroyWindow(_window);
+    _window = nullptr;
+  }
 
   SDL_Quit();
 }

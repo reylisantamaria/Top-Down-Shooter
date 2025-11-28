@@ -1,8 +1,5 @@
 #include "engine/Coordinator.h"
 
-// =======================================================
-// Coordinator (non-template function implementations)
-// =======================================================
 
 Engine::Coordinator &Engine::Coordinator::GetInstance()
 {
@@ -24,8 +21,8 @@ Engine::Entity Engine::Coordinator::CreateEntity()
 
 void Engine::Coordinator::DestroyEntity(Entity entity)
 {
-  _systemManager->EntityDestroyed(entity);                // Remove entity from all systems first
-  _componentManager->EntityDestroyed(entity);             // Remove all components from entity
+  _systemManager->EntityDestroyed(entity);                   // Remove entity from all systems first
+  _componentManager->EntityDestroyed(entity);                // Remove all components from entity
   _entityManager->SetSignature(entity, Engine::Signature()); // Reset the entity's signature
-  _entityManager->DestroyEntity(entity);                  // Finally destroy the entity (this checks signature is empty)
+  _entityManager->DestroyEntity(entity);                     // Finally destroy the entity (this checks signature is empty)
 }

@@ -2,36 +2,29 @@
 
 #include <cassert>
 
-// =======================================================
-// EntityManager (non-template function implementations)
-// =======================================================
-
 Engine::EntityManager::EntityManager()
 {
-  // initialize the queue
+  // Initialize the entity ID pool with all available IDs (0 to MAX_ENTITIES-1)
   for (Entity entity = 0; entity < MAX_ENTITIES; ++entity)
   {
     _entityIDs.push(entity);
   }
 }
 
-// =======================================================
 Engine::Entity Engine::EntityManager::CreateEntity()
 {
   assert(_livingEntityCount < MAX_ENTITIES && "Too many entities alive.");
 
-  // pick next unused ID in queue
+  // Get next available entity ID from the pool
   Entity id = _entityIDs.front();
-
-  // remove from queue
   _entityIDs.pop();
-  // mark as used
+
+  // Track the new living entity
   ++_livingEntityCount;
 
   return id;
 }
 
-// =======================================================
 void Engine::EntityManager::DestroyEntity(Entity entity)
 {
   assert(entity < MAX_ENTITIES && "Entity is out of range.");
@@ -50,8 +43,7 @@ void Engine::EntityManager::DestroyEntity(Entity entity)
   --_livingEntityCount;
 }
 
-// =======================================================
-void Engine::EntityManager::SetSignature(Entity entity, Signature signature)
+void Engine::EntityManager::SetSignature(Entity entity, const Signature &signature)
 {
   // signatures array is the same size as the max entites.
   assert(entity < MAX_ENTITIES && "Entity is out of range.");
@@ -60,7 +52,6 @@ void Engine::EntityManager::SetSignature(Entity entity, Signature signature)
   // current entity's signature is now in the array.
 }
 
-// =======================================================
 const Engine::Signature &Engine::EntityManager::GetSignature(Entity entity) const
 {
   assert(entity < MAX_ENTITIES && "Entity is out of range.");
@@ -68,7 +59,6 @@ const Engine::Signature &Engine::EntityManager::GetSignature(Entity entity) cons
   return _signatures[entity];
 }
 
-// =======================================================
 size_t Engine::EntityManager::GetLivingEntityCount() const
 {
   return _livingEntityCount;

@@ -1,26 +1,17 @@
 #include "engine/TextureManager.h"
 #include <iostream>
 
-// =============================================================================
-// Singleton Access
-// =============================================================================
 Engine::TextureManager &Engine::TextureManager::GetInstance()
 {
   static Engine::TextureManager instance;
   return instance;
 }
 
-// =============================================================================
-// Destructor - Cleanup all textures
-// =============================================================================
 Engine::TextureManager::~TextureManager()
 {
   Clear();
 }
 
-// =============================================================================
-// Initialization
-// =============================================================================
 void Engine::TextureManager::Init(SDL_Renderer *renderer)
 {
   if (!renderer)
@@ -31,9 +22,6 @@ void Engine::TextureManager::Init(SDL_Renderer *renderer)
   _renderer = renderer;
 }
 
-// =============================================================================
-// Batch Loading - Load all textures from TextureAssets map
-// =============================================================================
 void Engine::TextureManager::LoadAllTextures()
 {
   for (const auto &[id, filepath] : TextureAssets)
@@ -42,9 +30,6 @@ void Engine::TextureManager::LoadAllTextures()
   }
 }
 
-// =============================================================================
-// Load Single Texture
-// =============================================================================
 bool Engine::TextureManager::Load(TextureID id, const std::string &filepath)
 {
   // Validate renderer is initialized
@@ -85,18 +70,12 @@ bool Engine::TextureManager::Load(TextureID id, const std::string &filepath)
   return true;
 }
 
-// =============================================================================
-// Texture Retrieval
-// =============================================================================
 SDL_Texture *Engine::TextureManager::Get(TextureID id) const
 {
   auto itr = _textures.find(id);
   return (itr != _textures.end()) ? itr->second : nullptr;
 }
 
-// =============================================================================
-// Unload Single Texture
-// =============================================================================
 void Engine::TextureManager::Unload(TextureID id)
 {
   auto itr = _textures.find(id);
@@ -107,9 +86,6 @@ void Engine::TextureManager::Unload(TextureID id)
   }
 }
 
-// =============================================================================
-// Clear All Textures
-// =============================================================================
 void Engine::TextureManager::Clear()
 {
   for (const auto &[id, texture] : _textures)

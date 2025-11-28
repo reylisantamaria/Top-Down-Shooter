@@ -1,11 +1,6 @@
 #include "game/Systems.h"
 #include <iostream>
 
-extern Engine::Coordinator _coordinator;
-
-// =============================================================================
-// Render System Implementation
-// =============================================================================
 void Systems::RenderSystem::Init(SDL_Renderer *renderer, Engine::TextureManager *textureManager)
 {
   _renderer = renderer;
@@ -14,11 +9,13 @@ void Systems::RenderSystem::Init(SDL_Renderer *renderer, Engine::TextureManager 
 
 void Systems::RenderSystem::Update()
 {
+  auto &coordinator = Engine::Coordinator::GetInstance();
+
   // Iterate through all entities that have Transform and Sprite components
-  for (const auto &entity : _entitiesSet)
+  for (const auto &entity : _entities)
   {
-    auto &transform = _coordinator.GetComponent<Components::Transform>(entity);
-    auto &sprite = _coordinator.GetComponent<Components::Sprite>(entity);
+    auto &transform = coordinator.Get<Components::Transform>(entity);
+    auto &sprite = coordinator.Get<Components::Sprite>(entity);
 
     auto *texture = _textureManager->Get(sprite.textureId);
 

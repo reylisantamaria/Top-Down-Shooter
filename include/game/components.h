@@ -3,16 +3,6 @@
 #include <SDL3/SDL.h>
 #include "game/TextureAssets.h"
 
-// =============================================================================
-// Game Components
-// =============================================================================
-// This file contains all component definitions for the ECS (Entity Component System).
-// Components are pure data structures with no logic - they only hold state.
-//
-// Usage:
-//   _coordinator.AddComponent<Components::Transform>(entity, Components::Transform{...});
-// =============================================================================
-
 namespace Components
 {
   /**
@@ -37,7 +27,4 @@ namespace Components
     SDL_ScaleMode scaleMode; // SDL_SCALEMODE_NEAREST (pixel art) or SDL_SCALEMODE_LINEAR (smooth)
     SDL_FlipMode flipMode;   // Flip mode (horizontal, vertical, or none)
   };
-
-  // TODO: Add more components as needed
-  //   Examples: Velocity, Health, Collider, Input, etc.
 }

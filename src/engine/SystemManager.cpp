@@ -1,18 +1,14 @@
 #include "engine/SystemManager.h"
 
-// =======================================================
-// SystemManager (non-template function implementations)
-// =======================================================
-
 void Engine::SystemManager::EntityDestroyed(Entity entity)
 {
   for (const auto &[type, system] : _systems)
   {
-    system->_entitiesSet.erase(entity);
+    system->_entities.erase(entity);
   }
 }
 
-void Engine::SystemManager::EntitySignatureChanged(Entity entity, Signature entitySignature)
+void Engine::SystemManager::EntitySignatureChanged(Entity entity, const Signature &entitySignature)
 {
   for (const auto &[type, system] : _systems)
   {
@@ -29,11 +25,11 @@ void Engine::SystemManager::EntitySignatureChanged(Entity entity, Signature enti
     // Comparison:          [1, 1, 0, 0, 0] == [1, 1, 0, 0, 0]
     if ((entitySignature & systemSignature) == systemSignature)
     {
-      system->_entitiesSet.insert(entity);
+      system->_entities.insert(entity);
     }
     else
     {
-      system->_entitiesSet.erase(entity);
+      system->_entities.erase(entity);
     }
   }
 }
