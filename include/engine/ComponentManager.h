@@ -4,7 +4,6 @@
 #include <unordered_map>
 #include <typeindex>
 #include <cassert>
-
 #include "ComponentArray.h"
 #include "Types.h"
 
@@ -30,7 +29,7 @@ namespace Engine
     void RegisterComponent();
 
     template <typename T>
-    ComponentType GetComponentType() const;
+    ComponentType GetComponentType();
 
     template <typename T>
     void AddComponent(Entity entity, const T &component);
@@ -78,7 +77,7 @@ namespace Engine
   }
 
   template <typename T>
-  ComponentType ComponentManager::GetComponentType() const
+  ComponentType ComponentManager::GetComponentType()
   {
     std::type_index typeIndex = typeid(T);
 
@@ -115,7 +114,7 @@ namespace Engine
     std::type_index typeIndex = typeid(T);
     assert(_componentStorage.find(typeIndex) != _componentStorage.end() && "Component not registered before use.");
 
-    return std::static_pointer_cast<ComponentArray<T>>(_componentStorage[typeIndex]); // Cast the generic IComponentArray back to the specific ComponentArray<T> type
+    return std::static_pointer_cast<ComponentArray<T>>(_componentStorage.at(typeIndex)); // Cast the generic IComponentArray back to the specific ComponentArray<T> type
                                                                                       // This is safe because we know we stored a ComponentArray<T> when we registered it
   }
 }

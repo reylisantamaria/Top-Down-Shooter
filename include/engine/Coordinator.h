@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <concepts>
 #include "Types.h"
 #include "ComponentManager.h"
 #include "EntityManager.h"
@@ -21,14 +22,19 @@ namespace Engine
 
     Entity CreateEntity();                                      // Create a new entity
     void DestroyEntity(Entity entity);                          // Destroy an entity
+    std::size_t GetEntityCount() const;                         // Get the number of entities
 
     template <typename T>
+      requires std::is_class_v<T>
     void AddComponent(Entity entity, const T &component);       // Add a component to an entity
     template <typename T>
+      requires std::is_class_v<T>
     void RemoveComponent(Entity entity);                        // Remove a component from an entity
     template <typename T>
+      requires std::is_class_v<T>
     T &Get(Entity entity) const;                                // Get a component from an entity
     template <typename T>
+      requires std::is_class_v<T>
     T *GetOptional(Entity entity) const;                        // Safe to request a component that may not exist
 
     template <typename T, typename... Components>
@@ -37,7 +43,7 @@ namespace Engine
     Coordinator();
 
     template <typename T>
-    ComponentType GetComponentType() const;               // Get the component type for a given component (helper)
+    ComponentType GetComponentType();                     // Get the component type for a given component (helper)
 
     std::unique_ptr<ComponentManager> _componentManager;        // Manages all component storage and retrieval
     std::unique_ptr<EntityManager> _entityManager;              // Manages entity creation, destruction, and signatures
@@ -47,6 +53,7 @@ namespace Engine
   // =======================================================
 
   template <typename T>
+  requires std::is_class_v<T>
   void Coordinator::AddComponent(Entity entity, const T &component)
   {
     _componentManager->AddComponent<T>(entity, component);     // Add component to its component array
@@ -59,6 +66,7 @@ namespace Engine
   }
 
   template <typename T>
+    requires std::is_class_v<T>
   void Coordinator::RemoveComponent(Entity entity)
   {
     _componentManager->RemoveComponent<T>(entity);             // Remove component from its component array
@@ -71,6 +79,7 @@ namespace Engine
   }
 
   template <typename T>
+    requires std::is_class_v<T>
   T &Coordinator::Get(Entity entity) const
   {
     return _componentManager->GetComponent<T>(entity);
@@ -96,6 +105,7 @@ namespace Engine
   }
 
   template <typename Component>
+    requires std::is_class_v<Component>
   Component *Coordinator::GetOptional(Entity entity) const
   {
     ComponentType componentType = GetComponentType<Component>();
@@ -107,7 +117,7 @@ namespace Engine
   }
 
   template <typename T>
-  ComponentType Coordinator::GetComponentType() const
+  ComponentType Coordinator::GetComponentType()
   {
     return _componentManager->GetComponentType<T>();
   }

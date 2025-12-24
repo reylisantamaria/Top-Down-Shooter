@@ -26,3 +26,8 @@ void Engine::Coordinator::DestroyEntity(Entity entity)
   _entityManager->SetSignature(entity, Engine::Signature()); // Reset the entity's signature
   _entityManager->DestroyEntity(entity);                     // Finally destroy the entity (this checks signature is empty)
 }
+
+size_t Engine::Coordinator::GetEntityCount() const
+{
+  return _entityManager->GetLivingEntityCount();
+}

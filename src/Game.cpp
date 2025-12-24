@@ -29,6 +29,8 @@ bool Game::Init()
     Cleanup();
     return false;
   }
+  auto& coordinator = Engine::Coordinator::GetInstance();
+  std::println("Entity count: {}", coordinator.GetEntityCount());
   return true;
 }
 
@@ -78,12 +80,35 @@ bool Game::InitECS()
 
   // Register and configure render system
   // Components are automatically registered when used
-  _renderSystem = coordinator.RegisterSystem<Systems::RenderSystem, 
+  _renderSystem = coordinator.RegisterSystem<Systems::RenderSystem,
                                              Components::Transform,
                                              Components::Sprite>();
 
+  // Register and configure input system
+  _inputSystem = coordinator.RegisterSystem<Systems::InputSystem,
+                                            Components::Velocity,
+                                            Components::Direction>();
+
+  // Register and configure movement system
+  _movementSystem = coordinator.RegisterSystem<Systems::MovementSystem,
+                                               Components::Transform,
+                                               Components::Velocity>();
+
   // Initialize render system with renderer and texture manager
   _renderSystem->Init(_renderer, &Engine::TextureManager::GetInstance());
+
+  _playerEntity = coordinator.CreateEntity();
+
+  coordinator.AddComponent<Components::Transform>(_playerEntity, {.position = {400.0f, 300.0f}});
+
+  coordinator.AddComponent<Components::Sprite>(_playerEntity, {.textureId = TextureID::Player,
+                                                               .srcRect = {0.0f, 0.0f, 64.0f, 64.0f}, // Adjust to your texture size
+                                                               .scaleMode = SDL_SCALEMODE_NEAREST,    // Pixel art style
+                                                               .flipMode = SDL_FLIP_NONE});
+
+  coordinator.AddComponent<Components::Velocity>(_playerEntity, {.speed = 300.0f});
+
+  coordinator.AddComponent<Components::Direction>(_playerEntity, {Directions::RIGHT});
 
   return true;
 }
@@ -112,8 +137,6 @@ void Game::Run()
     Uint64 frameDuration = SDL_GetTicks() - frameStart;
     deltaTime = frameDuration / 1000.0f;
   }
-
-  Cleanup();
 }
 
 void Game::HandleEvents()
@@ -130,8 +153,9 @@ void Game::HandleEvents()
 
 void Game::Update(float deltaTime)
 {
-  // Future: Add game systems updates here (movement, physics, etc.)
-  // Example: _movementSystem->Update(deltaTime);
+  auto keyboardState = SDL_GetKeyboardState(NULL);
+  _inputSystem->Update(keyboardState);
+  _movementSystem->Update(deltaTime);
 }
 
 void Game::Render() const
@@ -153,10 +177,12 @@ void Game::Cleanup()
     SDL_DestroyRenderer(_renderer);
     _renderer = nullptr;
   }
-  if (_window) {
+  if (_window)
+  {
     SDL_DestroyWindow(_window);
     _window = nullptr;
   }
 
+  std::println("Cleaning up game...");
   SDL_Quit();
 }

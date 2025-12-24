@@ -32,4 +32,9 @@ private:
   bool _running = false;
 
   std::shared_ptr<Systems::RenderSystem> _renderSystem;
+  std::shared_ptr<Systems::InputSystem> _inputSystem;
+  std::shared_ptr<Systems::MovementSystem> _movementSystem;
+
+  
+  Engine::Entity _playerEntity;
 };
