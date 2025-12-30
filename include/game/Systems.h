@@ -5,6 +5,7 @@
 #include "game/Components.h"
 #include "engine/Coordinator.h"
 #include "engine/TextureManager.h"
+
 namespace Systems
 {
   /**
@@ -24,21 +25,32 @@ namespace Systems
 
   /**
    * Input System
+   * Handles player keyboard input (WASD) and sets velocity accordingly.
    */
   class InputSystem : public Engine::System
   {
-    public:
-      void Update(const bool *keyboardState);
+  public:
+    void Update();
   };
 
   /**
    * Movement System
+   * Moves all entities based on their velocity.
    */
   class MovementSystem : public Engine::System
   {
-    public:
-      void Update(float dt);
+  public:
+    void Update(float dt);
   };
 
+  /**
+   * Aim System
+   * Rotates entities to face the mouse cursor.
+   */
+  class AimSystem : public Engine::System
+  {
+  public:
+    void Update();
+  };
 
 }

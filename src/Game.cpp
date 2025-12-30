@@ -84,8 +84,9 @@ bool Game::InitECS()
                                              Components::Transform,
                                              Components::Sprite>();
 
-  // Register and configure input system
+  // Register and configure input system (player only)
   _inputSystem = coordinator.RegisterSystem<Systems::InputSystem,
+                                            Components::PlayerTag,
                                             Components::Velocity,
                                             Components::Direction>();
 
@@ -93,6 +94,10 @@ bool Game::InitECS()
   _movementSystem = coordinator.RegisterSystem<Systems::MovementSystem,
                                                Components::Transform,
                                                Components::Velocity>();
+
+  // Register and configure aim system
+  _aimSystem = coordinator.RegisterSystem<Systems::AimSystem,
+                                          Components::Transform>();
 
   // Initialize render system with renderer and texture manager
   _renderSystem->Init(_renderer, &Engine::TextureManager::GetInstance());
@@ -109,6 +114,8 @@ bool Game::InitECS()
   coordinator.AddComponent<Components::Velocity>(_playerEntity, {.speed = 300.0f});
 
   coordinator.AddComponent<Components::Direction>(_playerEntity, {Directions::RIGHT});
+
+  coordinator.AddComponent<Components::PlayerTag>(_playerEntity, {});
 
   return true;
 }
@@ -153,9 +160,9 @@ void Game::HandleEvents()
 
 void Game::Update(float deltaTime)
 {
-  auto keyboardState = SDL_GetKeyboardState(NULL);
-  _inputSystem->Update(keyboardState);
+  _inputSystem->Update();
   _movementSystem->Update(deltaTime);
+  _aimSystem->Update();
 }
 
 void Game::Render() const

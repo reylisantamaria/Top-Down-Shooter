@@ -1,6 +1,6 @@
 #include "game/Systems.h"
 #include <iostream>
-#include <string>
+#include <cmath>
 
 void Systems::RenderSystem::Init(SDL_Renderer *renderer, Engine::TextureManager *textureManager)
 {
@@ -26,9 +26,9 @@ void Systems::RenderSystem::Update()
       continue;
     }
 
-    SDL_SetTextureScaleMode(texture, sprite.scaleMode);
+    SDL_SetTextureScaleMode(texture, sprite.scaleMode);                       // Change accordingly to the purpose of the texture
 
-    // Calculate destination rectangle (centered on position)
+    // Calculate where to draw the texture on the screen and how big it should be (dimensions)
     SDL_FRect dstRect;
     dstRect.x = transform.position.x;
     dstRect.y = transform.position.y;
@@ -37,33 +37,31 @@ void Systems::RenderSystem::Update()
 
     // Render the texture
     SDL_RenderTextureRotated(_renderer, texture, &sprite.srcRect, &dstRect,
-                             transform.rotation, nullptr, sprite.flipMode);
+                             transform.rotation, nullptr, sprite.flipMode);    // Using SDL_RenderTextureRotated to rotate the texture and flip it if needed
   }
 }
 
 /*
  * Input System
- * Handles player input
+ * Handles player keyboard input (WASD) and sets velocity accordingly.
  */
-void Systems::InputSystem::Update(const bool *keyboardState)
+void Systems::InputSystem::Update()
 {
+  auto keyboardState = SDL_GetKeyboardState(NULL);
 
   auto &coordinator = Engine::Coordinator::GetInstance();
 
   for (const auto &entity : _entities)
   {
-    auto &v = coordinator.Get<Components::Velocity>(entity);
-    auto &d = coordinator.Get<Components::Direction>(entity);
+    auto &velocity = coordinator.Get<Components::Velocity>(entity);
+    auto &direction = coordinator.Get<Components::Direction>(entity);
 
-    v.vel = {0.0f, 0.0f};                         // Reset the velocity to 0
-    Engine::Vec2 temp_dir = {0.0f, 0.0f};         // Resets direction & enables accumulation of directions (for diagonal movement)
+    velocity.value = {0.0f, 0.0f};                                              // Reset the velocity to 0
+    Engine::Vec2 temp_dir = {0.0f, 0.0f};                                       // Resets direction & enables accumulation of directions (for diagonal movement)
 
-    /*
-     * All this does is set the velocity based on the direction and the speed.
-     * no movement is done here.
-     *
-     * The Direction component is used to store the direction of the player.
-     */
+    // All this does is set the velocity based on the direction and the speed.
+    // no movement is done here.
+    // The Direction component is used to store the direction of the player.
 
     if (keyboardState[SDL_SCANCODE_W])
     {
@@ -82,18 +80,17 @@ void Systems::InputSystem::Update(const bool *keyboardState)
       temp_dir += Directions::RIGHT;
     }
 
-    if (temp_dir.normalize())                     // normalize returns false if zero-length (entity not moving)
+    if (temp_dir.normalize())                                                   // normalize returns false if zero-length (entity not moving)
     {
-      d.dir = temp_dir;
-      v.vel = temp_dir * v.speed;
-      std::println("Direction: {:.2f}, {:.2f}", temp_dir.x, temp_dir.y);
+      direction.value = temp_dir;
+      velocity.value = temp_dir * velocity.speed;
     }
   }
 }
 
 /*
  * Movement System
- * Handles player movement
+ * Moves all entities based on their velocity.
  */
 void Systems::MovementSystem::Update(float dt)
 {
@@ -101,10 +98,38 @@ void Systems::MovementSystem::Update(float dt)
 
   for (const auto &entity : _entities)
   {
-    auto &t = coordinator.Get<Components::Transform>(entity);
-    auto &v = coordinator.Get<Components::Velocity>(entity);
+    auto &transform = coordinator.Get<Components::Transform>(entity);
+    auto &velocity = coordinator.Get<Components::Velocity>(entity);
 
-    // This updates the entity's position based on it's velocity
-    t.position += v.vel * dt;
+    transform.position += velocity.value * dt;                                  // Update position based on velocity
+  }
+}
+
+/*
+ * Aim System
+ * Rotates entities to face the mouse cursor
+ */
+void Systems::AimSystem::Update()
+{
+  auto &coordinator = Engine::Coordinator::GetInstance();
+
+  float mouseX, mouseY;
+  SDL_GetMouseState(&mouseX, &mouseY);
+
+  float offset = 90.0f;                                                       // Add 90 degrees b/c the sprite faces "up" by default (and not "right")
+  float conversionFactor = 180.0f / M_PI;                                     // Convert radians to degrees since SDL uses degrees
+
+  for (const auto &entity : _entities)
+  {
+    auto &transform = coordinator.Get<Components::Transform>(entity);
+
+    // Calculate the difference in x and y between the mouse and the entity
+    float dx = mouseX - transform.position.x;
+    float dy = mouseY - transform.position.y;
+
+    float angleInRadians = std::atan2(dy, dx);
+    float angleInDegrees = angleInRadians * conversionFactor + offset;
+
+    transform.rotation = angleInDegrees;                                        // rotation is handled in the render system
   }
 }

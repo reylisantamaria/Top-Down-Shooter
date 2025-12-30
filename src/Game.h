@@ -34,6 +34,7 @@ private:
   std::shared_ptr<Systems::RenderSystem> _renderSystem;
   std::shared_ptr<Systems::InputSystem> _inputSystem;
   std::shared_ptr<Systems::MovementSystem> _movementSystem;
+  std::shared_ptr<Systems::AimSystem> _aimSystem;
 
   
   Engine::Entity _playerEntity;

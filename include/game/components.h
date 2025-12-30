@@ -39,7 +39,7 @@ namespace Components
    */
   struct Velocity
   {
-    Engine::Vec2 vel;
+    Engine::Vec2 value;
     float speed;
   };
 
@@ -48,6 +48,6 @@ namespace Components
    */
   struct Direction
   {
-    Engine::Vec2 dir;
+    Engine::Vec2 value;
   };
 }
