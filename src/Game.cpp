@@ -1,5 +1,6 @@
 #include "Game.h"
 #include "game/TextureAssets.h"
+#include "game/EntityCreator.h"
 #include "engine/TextureManager.h"
 #include <iostream>
 
@@ -29,8 +30,6 @@ bool Game::Init()
     Cleanup();
     return false;
   }
-  auto& coordinator = Engine::Coordinator::GetInstance();
-  std::println("Entity count: {}", coordinator.GetEntityCount());
   return true;
 }
 
@@ -78,44 +77,56 @@ bool Game::InitECS()
 {
   auto &coordinator = Engine::Coordinator::GetInstance();
 
-  // Register and configure render system
-  // Components are automatically registered when used
-  _renderSystem = coordinator.RegisterSystem<Systems::RenderSystem,
-                                             Components::Transform,
-                                             Components::Sprite>();
+  // Register input system
+  _playerInputSystem = coordinator.RegisterSystem<Systems::PlayerInputSystem,
+                                                  Components::Player,
+                                                  Components::MoveIntent,
+                                                  Components::AimIntent,
+                                                  Components::FireIntent>();
 
-  // Register and configure input system (player only)
-  _inputSystem = coordinator.RegisterSystem<Systems::InputSystem,
-                                            Components::PlayerTag,
-                                            Components::Velocity,
-                                            Components::Direction>();
+  // Register weapon system
+  _weaponSystem = coordinator.RegisterSystem<Systems::WeaponSystem,
+                                             Components::Weapon,
+                                             Components::Cooldown,
+                                             Components::OwnedBy,
+                                             Components::WeaponStats>();
 
-  // Register and configure movement system
+  // Register timer systems
+  _cooldownSystem = coordinator.RegisterSystem<Systems::CooldownSystem,
+                                               Components::Cooldown>();
+
+  _lifetimeSystem = coordinator.RegisterSystem<Systems::LifetimeSystem,
+                                               Components::Lifetime>();
+
+  // Register gameplay systems
+  _aimSystem = coordinator.RegisterSystem<Systems::AimSystem,
+                                          Components::Transform,
+                                          Components::AimIntent>();
+
+  // Update velocity's values based on the entity's move intent
+  _velocitySystem = coordinator.RegisterSystem<Systems::VelocitySystem,
+                                                 Components::MoveIntent,
+                                                 Components::Velocity,
+                                                 Components::Speed>();
+
+  // Move the entity's transform based on its velocity
   _movementSystem = coordinator.RegisterSystem<Systems::MovementSystem,
                                                Components::Transform,
                                                Components::Velocity>();
 
-  // Register and configure aim system
-  _aimSystem = coordinator.RegisterSystem<Systems::AimSystem,
-                                          Components::Transform>();
+  // Render the entity's sprite
+  _renderSystem = coordinator.RegisterSystem<Systems::RenderSystem,
+                                             Components::Transform,
+                                             Components::Sprite>();
 
   // Initialize render system with renderer and texture manager
   _renderSystem->Init(_renderer, &Engine::TextureManager::GetInstance());
 
-  _playerEntity = coordinator.CreateEntity();
+  // Create player
+  Engine::Entity player = EntityCreator::CreatePlayer({.position = {Config::WINDOW_WIDTH / 2.0f, Config::WINDOW_HEIGHT / 2.0f}});
 
-  coordinator.AddComponent<Components::Transform>(_playerEntity, {.position = {400.0f, 300.0f}});
-
-  coordinator.AddComponent<Components::Sprite>(_playerEntity, {.textureId = TextureID::Player,
-                                                               .srcRect = {0.0f, 0.0f, 64.0f, 64.0f}, // Adjust to your texture size
-                                                               .scaleMode = SDL_SCALEMODE_NEAREST,    // Pixel art style
-                                                               .flipMode = SDL_FLIP_NONE});
-
-  coordinator.AddComponent<Components::Velocity>(_playerEntity, {.speed = 300.0f});
-
-  coordinator.AddComponent<Components::Direction>(_playerEntity, {Directions::RIGHT});
-
-  coordinator.AddComponent<Components::PlayerTag>(_playerEntity, {});
+  // Create weapon for player
+  EntityCreator::CreateLaserWeapon(player);
 
   return true;
 }
@@ -160,9 +171,32 @@ void Game::HandleEvents()
 
 void Game::Update(float deltaTime)
 {
-  _inputSystem->Update();
-  _movementSystem->Update(deltaTime);
+  // 1. Input: Read player input
+  _playerInputSystem->Update();
+
+  // 2. Decision: Calculate aim directions
   _aimSystem->Update();
+
+  // 3. Action: Fire weapons
+  _weaponSystem->Update();
+
+  // 4. Movement: Convert intents to velocity, then move
+  _velocitySystem->Update();
+  _movementSystem->Update(deltaTime);
+
+  // 5. Timers: Update cooldowns and lifetimes
+  _cooldownSystem->Update(deltaTime);
+  _lifetimeSystem->Update(deltaTime);
+
+  auto &coordinator = Engine::Coordinator::GetInstance();
+
+  auto entityCount = coordinator.GetEntityCount();
+  static auto prevEntityCount = entityCount;
+  if (entityCount != prevEntityCount)
+  {
+    std::println("Entity count: {}", entityCount);
+    prevEntityCount = entityCount;
+  }
 }
 
 void Game::Render() const

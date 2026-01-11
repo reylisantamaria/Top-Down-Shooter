@@ -5,13 +5,12 @@
 #include "game/Components.h"
 #include "engine/Coordinator.h"
 #include "engine/TextureManager.h"
+#include "game/EntityCreator.h"
+#include <cmath>
 
 namespace Systems
 {
-  /**
-   * Render System
-   * Renders all entities that have both Transform and Sprite components.
-   */
+  // RenderSystem draws entities that have both Transform and Sprite.
   class RenderSystem : public Engine::System
   {
   public:
@@ -23,24 +22,25 @@ namespace Systems
     Engine::TextureManager *_textureManager;
   };
 
-  /**
-   * Input System
-   * Handles player keyboard input (WASD) and sets velocity accordingly.
-   */
-  class InputSystem : public Engine::System
+  // PlayerInputSystem handles WASD input and flags intent components.
+  class PlayerInputSystem : public Engine::System
   {
   public:
     void Update();
   };
 
-  /**
-   * Movement System
-   * Moves all entities based on their velocity.
-   */
+  // MovementSystem updates transforms based on current velocity.
   class MovementSystem : public Engine::System
   {
   public:
     void Update(float dt);
+  };
+
+  // VelocitySystem converts move intents into actual velocity vectors.
+  class VelocitySystem : public Engine::System
+  {
+  public:
+    void Update();
   };
 
   /**
@@ -53,4 +53,24 @@ namespace Systems
     void Update();
   };
 
+  // WeaponSystem fires weapons when their owners want to shoot.
+  class WeaponSystem : public Engine::System
+  {
+  public:
+    void Update();
+  };
+
+  // CooldownSystem ticks down cooldown timers.
+  class CooldownSystem : public Engine::System
+  {
+  public:
+    void Update(float dt);
+  };
+
+  // LifetimeSystem removes entities when their lifetime hits zero.
+  class LifetimeSystem : public Engine::System
+  {
+  public:
+    void Update(float dt);
+  };
 }

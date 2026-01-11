@@ -25,17 +25,19 @@ private:
   void Update(float deltaTime);
   void Render() const;
   void Cleanup();
-  
+
   // SDL members
   SDL_Window *_window = nullptr;
   SDL_Renderer *_renderer = nullptr;
   bool _running = false;
 
-  std::shared_ptr<Systems::RenderSystem> _renderSystem;
-  std::shared_ptr<Systems::InputSystem> _inputSystem;
-  std::shared_ptr<Systems::MovementSystem> _movementSystem;
+  // Systems
+  std::shared_ptr<Systems::PlayerInputSystem> _playerInputSystem;
+  std::shared_ptr<Systems::CooldownSystem> _cooldownSystem;
+  std::shared_ptr<Systems::LifetimeSystem> _lifetimeSystem;
   std::shared_ptr<Systems::AimSystem> _aimSystem;
-
-  
-  Engine::Entity _playerEntity;
+  std::shared_ptr<Systems::VelocitySystem> _velocitySystem;
+  std::shared_ptr<Systems::MovementSystem> _movementSystem;
+  std::shared_ptr<Systems::WeaponSystem> _weaponSystem;
+  std::shared_ptr<Systems::RenderSystem> _renderSystem;
 };

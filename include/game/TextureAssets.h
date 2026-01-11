@@ -3,14 +3,15 @@
 #include <unordered_map>
 #include <string>
 
-// This file focuses on all texture asset IDs and file paths for the game.
+// Texture ID map and file paths used by the game.
 
 enum class TextureID
 {
   Player,
-  Background
+  LaserBeam
 };
 
-inline std::unordered_map<TextureID, std::string> TextureAssets = {
-    {TextureID::Player, "../images/spaceships/ship/purple.png"},
-    {TextureID::Background, "../images/bg/background.png"}};
+inline std::unordered_map<TextureID, std::string> TextureAssets =
+    {
+        {TextureID::Player, "../images/spaceships/ship/purple.png"},
+        {TextureID::LaserBeam, "../images/laserbeam.png"}};

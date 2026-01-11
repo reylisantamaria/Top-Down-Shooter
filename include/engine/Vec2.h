@@ -2,6 +2,7 @@
 
 #include <SDL3/SDL.h>
 #include <cmath>
+#include <limits>
 
 namespace Engine
 {
@@ -27,7 +28,16 @@ namespace Engine
       return *this;
     }
 
-    // Multiplication with another 2d vector
+    // Subtraction
+    constexpr Vec2 operator-(const Vec2 &other) const { return {x - other.x, y - other.y}; }
+    constexpr Vec2 &operator-=(const Vec2 &other)
+    {
+      x -= other.x;
+      y -= other.y;
+      return *this;
+    }
+
+    // multiplication
     constexpr Vec2 operator*(const Vec2 &other) const { return {x * other.x, y * other.y}; }
     constexpr Vec2 &operator*=(const Vec2 &other)
     {
@@ -36,7 +46,16 @@ namespace Engine
       return *this;
     }
 
-    // Multiplication with a scalar
+    // division
+    constexpr Vec2 operator/(const Vec2 &other) const { return {x / other.x, y / other.y}; }
+    constexpr Vec2 &operator/=(const Vec2 &other)
+    {
+      x /= other.x;
+      y /= other.y;
+      return *this;
+    }
+
+    // Scalar multiplication
     constexpr Vec2 operator*(float scalar) const { return {x * scalar, y * scalar}; }
     constexpr Vec2 &operator*=(float scalar)
     {
@@ -45,22 +64,38 @@ namespace Engine
       return *this;
     }
 
-    // normalize - returns true if the vector was normalized, false if zero-length
-    constexpr bool normalize() 
-    { 
-      float len = this->length();
-      if (len == 0.0f) return false;
-      x /= len;
-      y /= len;
+    // Scalar division
+    constexpr Vec2 operator/(float scalar) const { return {x / scalar, y / scalar}; }
+    constexpr Vec2 &operator/=(float scalar)
+    {
+      x /= scalar;
+      y /= scalar;
+      return *this;
+    }
+
+    // Normalize in place - returns true if normalized, false if magnitude is zero
+    // does not modify the vector if the magnitude is zero
+    constexpr bool normalize()
+    {
+      float magnitude = std::sqrt(x * x + y * y);
+      if (magnitude <= std::numeric_limits<float>::epsilon())
+        return false; // comparing floats leads to precision issues, so we use a small epsilon
+      x /= magnitude;
+      y /= magnitude;
       return true;
     }
 
-    // length
-    constexpr float length() const { return std::sqrt(x * x + y * y); }
-
+    // Get normalized copy without modifying the original
+    Vec2 normalized() const
+    {
+      Vec2 result = *this;
+      result.normalize();
+      return result;
+    }
   };
 }
 
+// used to represent directions in 2D space
 namespace Directions
 {
   // since the window starts at (0,0) in the top left, we need to invert the y axis

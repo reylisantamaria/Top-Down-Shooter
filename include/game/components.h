@@ -6,48 +6,96 @@
 
 namespace Components
 {
-  /**
-   * Transform Component
-   * Defines an entity's position, rotation, and rotation center in 2D space.
-   */
+  // Transform keeps the position, rotation, and scale in 2D.
   struct Transform
   {
-    Engine::Vec2 position;          // World position (x, y)
-    float rotation{0.0f};           // Rotation in degrees (0-360)
-    Engine::Vec2 scale{1.0f, 1.0f}; // Scale factor (x, y)
+    Engine::Vec2 position{0.0f, 0.0f};
+    float rotation{0.0f};
+    Engine::Vec2 scale{1.0f, 1.0f};
   };
 
-  /**
-   * Sprite Component
-   * Defines the visual representation of an entity.
-   */
-  struct Sprite
-  {
-    TextureID textureId;     // ID of the texture to use
-    SDL_FRect srcRect;       // Source rectangle (for sprite sheets)
-    SDL_ScaleMode scaleMode; // SDL_SCALEMODE_NEAREST (pixel art) or SDL_SCALEMODE_LINEAR (smooth)
-    SDL_FlipMode flipMode;   // Flip mode (horizontal, vertical, or none)
-  };
-
-  /**
-   * Player tag (keeps track of the player)
-   */
-  struct PlayerTag {};
-
-  /**
-   * Velocity Component
-   */
+  // Velocity stores the current movement vector.
   struct Velocity
   {
-    Engine::Vec2 value;
-    float speed;
+    Engine::Vec2 vector{0.0f, 0.0f};
   };
 
-  /**
-   * Direction Component
-   */
-  struct Direction
+  // Sprite describes which texture to draw and how to orient it.
+  struct Sprite
   {
-    Engine::Vec2 value;
+    TextureID textureId;
+    SDL_FRect srcRect;
+    SDL_ScaleMode scaleMode;
+    SDL_FlipMode flipMode;
+    SDL_FPoint pivotPoint;
   };
+
+  // Speed controls how fast the entity moves.
+  struct Speed
+  {
+    float value;
+  };
+
+  // Damage tracks how much hurt the entity can deal.
+  struct Damage
+  {
+    float value;
+  };
+
+  // Lifetime counts down until the entity expires.
+  struct Lifetime
+  {
+    float remaining;
+  };
+
+  // Cooldown prevents actions from happening too soon again.
+  struct Cooldown
+  {
+    float remaining;
+  };
+
+  // MoveIntent holds the desired movement direction from input.
+  struct MoveIntent
+  {
+    Engine::Vec2 direction{0.0f, 0.0f};
+  };
+
+  // AimIntent remembers the cursor target and aim direction.
+  struct AimIntent
+  {
+    Engine::Vec2 target{0.0f, 0.0f};
+    Engine::Vec2 direction{0.0f, 0.0f};
+  };
+
+  // FireIntent flags whether the entity wants to shoot.
+  struct FireIntent
+  {
+    bool active{false};
+  };
+
+  // WeaponStats groups firing and visual values in one place.
+  struct WeaponStats
+  {
+    // Firing mechanics
+    float fireRate;           // Time between shots (seconds)
+    float projectileSpeed;    // Projectile velocity (pixels/second)
+    float projectileDamage;   // Damage per projectile
+    float projectileLifetime; // How long projectiles live (seconds)
+    float projectileOffset;   // Offset from owner center (pixels)
+
+    // Projectile visuals
+    TextureID projectileTexture;
+    SDL_FRect projectileSrcRect;
+    SDL_FPoint projectilePivotPoint;
+  };
+
+  // OwnedBy keeps a reference to the entity that owns this one.
+  struct OwnedBy
+  {
+    Engine::Entity owner;
+  };
+
+  // Tags
+  struct Player {}; // Player-controlled entity
+  struct Weapon {}; // Weapon entity
 }

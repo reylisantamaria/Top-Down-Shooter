@@ -65,6 +65,9 @@ bool Engine::TextureManager::Load(TextureID id, const std::string &filepath)
     return false;
   }
 
+  // Set default scale mode for pixel art (can be overridden per-sprite if needed)
+  SDL_SetTextureScaleMode(texture, SDL_SCALEMODE_NEAREST);
+
   // Store texture for future retrieval
   _textures[id] = texture;
   return true;

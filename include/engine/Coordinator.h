@@ -35,7 +35,7 @@ namespace Engine
     T &Get(Entity entity) const;                                // Get a component from an entity
     template <typename T>
       requires std::is_class_v<T>
-    T *GetOptional(Entity entity) const;                        // Safe to request a component that may not exist
+    T *GetOptional(Entity entity);                              // Safe to request a component that may not exist
 
     template <typename T, typename... Components>
     std::shared_ptr<T> RegisterSystem();                        // Register a system
@@ -56,10 +56,13 @@ namespace Engine
   requires std::is_class_v<T>
   void Coordinator::AddComponent(Entity entity, const T &component)
   {
+    // Ensure component is registered (triggers auto-registration if needed)
+    ComponentType componentType = _componentManager->GetComponentType<T>();
+
     _componentManager->AddComponent<T>(entity, component);     // Add component to its component array
 
     auto signature = _entityManager->GetSignature(entity);     // Get current entity signature
-    signature.set(_componentManager->GetComponentType<T>());   // Turn on the bit for this component type
+    signature.set(componentType);                              // Turn on the bit for this component type
     _entityManager->SetSignature(entity, signature);           // Update the entity's signature
 
     _systemManager->EntitySignatureChanged(entity, signature); // Notify all systems that the entity signature has changed
@@ -106,7 +109,7 @@ namespace Engine
 
   template <typename Component>
     requires std::is_class_v<Component>
-  Component *Coordinator::GetOptional(Entity entity) const
+  Component *Coordinator::GetOptional(Entity entity)
   {
     ComponentType componentType = GetComponentType<Component>();
 
